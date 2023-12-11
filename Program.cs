@@ -1,37 +1,20 @@
-﻿using System;
-using System.Diagnostics;
-using System.Reflection;
+﻿
+using System;
+using System.Net.Http;
+using System.Threading.Tasks;
 
-if (args.Length == 0)
+using (HttpClient client = new HttpClient())
 {
-    var versionString = Assembly.GetEntryAssembly()?
-                                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
-                                .InformationalVersion
-                                .ToString();
-    Console.WriteLine($"Fon Version: {versionString}");
-    Console.WriteLine("-----------------------------");
-    Console.WriteLine("Usage: fon <command> [options]");
-    return;
+    string username = "BacelarVitor";
+    string apiUrl = $"https://github.com/{username}";
+
+    client.DefaultRequestHeaders.Add("User-Agent", "MyApp"); // GitHub API requires a User-Agent header
+
+    HttpResponseMessage response = await client.GetAsync(apiUrl);
+    response.EnsureSuccessStatusCode();
+
+    string responseBody = await response.Content.ReadAsStringAsync();
+    Console.WriteLine(responseBody);
 }
 
-var command = args[0];
-var arguments = string.Join(" ", args[1..]);
 
-var process = new Process
-{
-    StartInfo = new ProcessStartInfo
-    {
-        FileName = "dotnet",
-        Arguments = "--version", //$"./fon.dll {command} {arguments}",
-        RedirectStandardOutput = true,
-        RedirectStandardError = true,
-        // UseShellExecute = false,
-        CreateNoWindow = true
-    }
-};
-
-process.Start();
-ArgumentNullException.ThrowIfNull(process);
-string output = process.StandardOutput.ReadToEnd();
-await process.WaitForExitAsync();
-     
